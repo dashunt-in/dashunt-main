@@ -4,19 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
-import { Mail, Lock, User, ArrowRight, Compass } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Compass } from 'lucide-react';
 import { authService } from '@/services/authService';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 
-export default function SignupPage() {
+export default function SignInPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,47 +25,29 @@ export default function SignupPage() {
     }
   }, [user, loading, router]);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
     setError(null);
-
-    const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     const trimmedPassword = password;
 
-    // Direct client validations
-    if (!trimmedName) {
-      setError('Please provide your operational callsign (name).');
-      return;
-    }
-    if (!trimmedEmail) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-    if (trimmedPassword.length < 6) {
-      setError('Operational access key must be at least 6 characters.');
-      return;
-    }
-    if (trimmedPassword !== confirmPassword) {
-      setError('Access keys do not match.');
+    if (!trimmedEmail || !trimmedPassword) {
+      setError('Please fill in all credentials.');
+      toast.error('Credentials cannot be empty');
       return;
     }
 
     setIsSubmitting(true);
-    const toastId = toast.loading('Initializing registration and securing coordinates...');
+    const toastId = toast.loading('Authenticating security clearance...');
 
     try {
-      await authService.signup({
-        email: trimmedEmail,
-        password: trimmedPassword,
-        name: trimmedName,
-      });
-      toast.success('Registration finalized! Welcome to Dashunt.', { id: toastId });
+      await authService.login({ email: trimmedEmail, password: trimmedPassword });
+      toast.success('Clearance granted! Welcome hunter.', { id: toastId });
       router.push('/dashboard');
     } catch (err: any) {
-      const errMsg = err?.message || 'Failed to initialize account.';
+      const errMsg = err?.message || 'Failed to authenticate.';
       setError(errMsg);
       toast.error(errMsg, { id: toastId });
     } finally {
@@ -87,11 +67,11 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4 sm:px-6 relative overflow-hidden">
-      {/* Background glowing gradients */}
+      {/* Background neon grid / glowing particles */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="max-w-md w-full space-y-8 relative py-12">
+      <div className="max-w-md w-full space-y-8 relative">
         {/* Brand Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-gradient-to-tr from-indigo-600 to-teal-400 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-white/10 mb-4 group hover:rotate-12 transition-transform duration-300">
@@ -105,39 +85,18 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* Glassmorphic Signup Card */}
+        {/* Glassmorphic Form Card */}
         <div className="glass-panel p-8 rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
           <h2 className="text-xl font-bold text-indigo-200 mb-6 font-sans">
-            Register New Coordinates
+            Authentication Required
           </h2>
 
-          <form className="space-y-4" onSubmit={handleSignup}>
+          <form className="space-y-5" onSubmit={handleSignIn}>
             {error && (
-              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-lg p-3 text-center font-mono">
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-lg p-3.5 text-center font-mono">
                 {error}
               </div>
             )}
-
-            {/* Name Field */}
-            <div className="space-y-1">
-              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wider text-gray-400 font-mono">
-                Callsign / Name
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
-                  <User className="h-4.5 w-4.5" />
-                </div>
-                <input
-                  id="name"
-                  type="text"
-                  required
-                  placeholder="Hunter Cooper"
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-900/60 border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all glow-indigo font-mono text-sm"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-            </div>
 
             {/* Email Field */}
             <div className="space-y-1">
@@ -153,7 +112,7 @@ export default function SignupPage() {
                   type="email"
                   required
                   placeholder="hunter@dashunt.com"
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-900/60 border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all glow-indigo font-mono text-sm"
+                  className="w-full pl-11 pr-4 py-3 bg-gray-900/60 border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all glow-indigo font-mono text-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -162,9 +121,11 @@ export default function SignupPage() {
 
             {/* Password Field */}
             <div className="space-y-1">
-              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-gray-400 font-mono">
-                Create Access Key (Password)
-              </label>
+              <div className="flex justify-between items-center">
+                <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-gray-400 font-mono">
+                  Access Key
+                </label>
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
                   <Lock className="h-4.5 w-4.5" />
@@ -174,35 +135,14 @@ export default function SignupPage() {
                   type="password"
                   required
                   placeholder="••••••••••••"
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-900/60 border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all glow-indigo font-mono text-sm"
+                  className="w-full pl-11 pr-4 py-3 bg-gray-900/60 border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all glow-indigo font-mono text-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Confirm Password Field */}
-            <div className="space-y-1">
-              <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wider text-gray-400 font-mono">
-                Confirm Access Key
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
-                  <Lock className="h-4.5 w-4.5" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  placeholder="••••••••••••"
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-900/60 border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all glow-indigo font-mono text-sm"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
+            {/* Action Buttons */}
             <Button
               type="submit"
               className="w-full mt-4 h-12 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 border border-indigo-400/20 rounded-xl text-sm font-semibold tracking-widest text-white shadow-[0_4px_15px_rgba(99,102,241,0.4)] hover:shadow-[0_4px_25px_rgba(99,102,241,0.6)] hover:-translate-y-0.5 active:translate-y-0 transition-all font-mono uppercase"
@@ -210,11 +150,11 @@ export default function SignupPage() {
             >
               {!isSubmitting && (
                 <>
-                  Register System Profile
+                  Establish Access
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
-              {isSubmitting && 'Registering Coordinates...'}
+              {isSubmitting && 'Authenticating...'}
             </Button>
           </form>
         </div>
@@ -222,12 +162,12 @@ export default function SignupPage() {
         {/* Footer Navigation */}
         <div className="text-center font-mono">
           <p className="text-sm text-gray-500">
-            Already have operational clearance?{' '}
+            First time in the field?{' '}
             <Link
-              href="/sign-in"
+              href="/signup"
               className="text-indigo-400 hover:text-indigo-300 transition-colors font-semibold underline underline-offset-4"
             >
-              Access terminal
+              Register coordinates
             </Link>
           </p>
         </div>
