@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #030712; /* Deep Space Black */
+  --foreground: #f3f4f6; /* Modern Light Gray Text */
+  
+  --card-bg: rgba(17, 24, 39, 0.7); /* Translucent Slate */
+  --card-border: rgba(255, 255, 255, 0.08); /* Minimal White Border */
+  
+  --primary-glow: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  --secondary-glow: radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 60%);
 }
 
 @theme inline {
@@ -12,15 +18,54 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  position: relative;
+  overflow-x: hidden;
 }
+
+/* Premium ambient glow backdrops */
+body::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 50%;
+  height: 50%;
+  background: var(--primary-glow);
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: var(--secondary-glow);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+
+.glow-indigo:focus {
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
